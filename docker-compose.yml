@@ -1,13 +1,31 @@
 services:
-  predictive-maintenance:
+
+  train:
     build:
-      context: ./codes/app
-      dockerfile: Dockerfile
-    container_name: predictive-maintenance-app
-    ports:
-      - "8501:8501"
+      context: .
+      dockerfile: src/Dockerfile
+    container_name: train-service
     volumes:
-      - ./codes/app:/app
-    environment:
-      - STREAMLIT_SERVER_HEADLESS=true
+      - ./artifacts:/app/artifacts
+    healthcheck:
+      test: ["CMD", "test", "-f", "/app/artifacts/model.keras"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: "no"
+
+  app:
+    build:
+      context: .
+      dockerfile: dev/Dockerfile
+    container_name: app-service
+    depends_on:
+      train:
+        condition: service_completed_successfully
+    volumes:
+      - ./artifacts:/app/artifacts
+    ports:
+      - "5000:5000"
+      - "8501:8501"
     restart: unless-stopped
+

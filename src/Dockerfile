@@ -1,10 +1,10 @@
 FROM python:3.12-slim
 
+WORKDIR /app
+
 RUN apt update && apt install -y git curl build-essential && rm -rf /var/lib/apt/lists/*
 
 RUN pip install poetry
-
-WORKDIR /app
 
 # Copier les fichiers Poetry
 COPY pyproject.toml poetry.lock* ./
@@ -17,12 +17,12 @@ RUN mkdir -p artifacts
 
 # Copier le reste des fichiers (code et données)
 COPY datas/ai4i2020.csv datas/
-COPY src/train.py .
+COPY src/ /app/src/
 
 ENV PATH="/root/.local/bin:$PATH"
 
 VOLUME ["/app/artifacts"]
 
-CMD ["python", "train.py"]
+CMD ["python", "src/train.py"]
 
 
